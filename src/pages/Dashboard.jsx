@@ -4,11 +4,23 @@ import { useAppContext } from '../context/useAppContext'
 import { toDateKey, parseDateKey } from '../utils/date'
 
 const Dashboard = () => {
-  const { tasks, habits, dashboardStats, toggleTaskCompletion, toggleHabit } = useAppContext()
+  const { tasks, habits, habitLogs, studySessions, dashboardStats, toggleTaskCompletion, toggleHabit } = useAppContext()
   const navigate = useNavigate()
 
   const today = useMemo(() => new Date(), [])
   const todayIso = toDateKey(today)
+
+  // Monday-anchored current week, used for both the heatmap and "This Week" study hours.
+  const weekDates = useMemo(() => {
+    const mondayOffset = (today.getDay() + 6) % 7 // 0 = Monday ... 6 = Sunday
+    const monday = new Date(today)
+    monday.setDate(today.getDate() - mondayOffset)
+    return Array.from({ length: 7 }).map((_, i) => {
+      const day = new Date(monday)
+      day.setDate(monday.getDate() + i)
+      return day
+    })
+  }, [today])
 
   const todaysTasks = useMemo(() => {
     const taskList = tasks.filter((task) => task.dueDate === todayIso)
@@ -41,12 +53,24 @@ const Dashboard = () => {
     { icon: '⭐', title: 'Consistent', desc: 'Use app for 30 days' },
   ], [])
 
+  const studyHours = useMemo(() => {
+    const weekKeys = new Set(weekDates.map((d) => toDateKey(d)))
+    const monthPrefix = todayIso.slice(0, 7) // 'yyyy-mm'
+    const thisWeek = studySessions.filter((s) => weekKeys.has(s.date)).reduce((sum, s) => sum + s.duration, 0)
+    const thisMonth = studySessions.filter((s) => s.date?.startsWith(monthPrefix)).reduce((sum, s) => sum + s.duration, 0)
+    return { thisWeek, thisMonth }
+  }, [studySessions, weekDates, todayIso])
+
   const heatmapCounts = useMemo(() => {
-    // Deterministic placeholder activity counts derived from completed task count,
-    // so the heatmap stays stable across renders instead of using Math.random().
-    const seed = dashboardStats.completedTasks
-    return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((_, i) => (seed + i * 3) % 12)
-  }, [dashboardStats.completedTasks])
+    // Real activity per day this week: completed tasks + habit logs + study sessions.
+    return weekDates.map((day) => {
+      const key = toDateKey(day)
+      const completedTasksOnDay = tasks.filter((task) => task.completedAt === key).length
+      const habitLogsOnDay = habitLogs.filter((log) => log.date === key).length
+      const studySessionsOnDay = studySessions.filter((session) => session.date === key).length
+      return completedTasksOnDay + habitLogsOnDay + studySessionsOnDay
+    })
+  }, [weekDates, tasks, habitLogs, studySessions])
 
   return (
     <div className="page dashboard-page">
@@ -187,11 +211,11 @@ const Dashboard = () => {
             </div>
             <div className="stat-mini">
               <span>This Week</span>
-              <strong>{Math.max(8, dashboardStats.completedTasks)}h</strong>
+              <strong>{studyHours.thisWeek.toFixed(1)}h</strong>
             </div>
             <div className="stat-mini">
               <span>This Month</span>
-              <strong>{Math.max(32, dashboardStats.completedTasks * 4)}h</strong>
+              <strong>{studyHours.thisMonth.toFixed(1)}h</strong>
             </div>
           </div>
         </div>

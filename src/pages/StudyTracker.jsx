@@ -1,37 +1,31 @@
 import { useMemo, useState } from 'react'
+import { useAppContext } from '../context/useAppContext'
 import { toDateKey } from '../utils/date'
 
 const baseSubjects = ['Java', 'DSA', 'SQL', 'DBMS', 'OS', 'CN', 'Spring Boot', 'Aptitude']
 
 const StudyTracker = () => {
+  const { studySessions, addStudySession } = useAppContext()
   const [subject, setSubject] = useState('Java')
   const [topic, setTopic] = useState('')
   const [duration, setDuration] = useState('1')
   const [date, setDate] = useState(toDateKey())
-  const [sessions, setSessions] = useState([
-    { id: 1, subject: 'Java', topic: 'Collections', duration: 2, date: '2026-08-15' },
-    { id: 2, subject: 'DSA', topic: 'Arrays', duration: 1.5, date: '2026-08-14' },
-    { id: 3, subject: 'SQL', topic: 'Joins', duration: 1, date: '2026-08-13' },
-  ])
 
   const totals = useMemo(() => {
     const result = baseSubjects.reduce((acc, subjectName) => ({ ...acc, [subjectName]: 0 }), {})
-    sessions.forEach((session) => {
+    studySessions.forEach((session) => {
       result[session.subject] = (result[session.subject] || 0) + session.duration
     })
     return result
-  }, [sessions])
+  }, [studySessions])
 
-  const totalHours = useMemo(() => sessions.reduce((sum, session) => sum + session.duration, 0), [sessions])
+  const totalHours = useMemo(() => studySessions.reduce((sum, session) => sum + session.duration, 0), [studySessions])
   const mostStudied = useMemo(() => Object.entries(totals).sort((a, b) => b[1] - a[1])[0]?.[0] || 'Java', [totals])
   const leastStudied = useMemo(() => Object.entries(totals).sort((a, b) => a[1] - b[1])[0]?.[0] || 'CN', [totals])
 
   const addSession = () => {
     if (!topic.trim()) return
-    setSessions((prev) => [
-      ...prev,
-      { id: Date.now(), subject, topic: topic.trim(), duration: Number(duration), date },
-    ])
+    addStudySession({ subject, topic: topic.trim(), duration: Number(duration), date })
     setTopic('')
     setDuration('1')
   }
@@ -75,9 +69,9 @@ const StudyTracker = () => {
       <section className="panel recent-sessions-panel">
         <h2>Recent Sessions</h2>
         <ul>
-          {sessions.slice().reverse().map((session) => (
+          {studySessions.length ? studySessions.slice().reverse().map((session) => (
             <li key={session.id}>{session.subject} {session.topic} - {session.duration} Hours</li>
-          ))}
+          )) : <li className="empty">No sessions logged yet</li>}
         </ul>
       </section>
 

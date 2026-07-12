@@ -1,15 +1,43 @@
 import { useState } from 'react'
 import { useAppContext } from '../context/useAppContext'
+import { downloadJson } from '../utils/download'
+import { toDateKey } from '../utils/date'
 
 const Settings = () => {
-  const { theme, setTheme } = useAppContext()
-  const [profile, setProfile] = useState({ name: '', email: '', avatar: '' })
-  const [preferences, setPreferences] = useState({ notifications: true, taskReminders: false, habitReminders: false, studyReminders: false })
+  const { theme, setTheme, profile, setProfile, preferences, setPreferences, getSnapshot, restoreSnapshot } = useAppContext()
   const [status, setStatus] = useState('')
 
   const handleChange = (key, value) => setProfile((prev) => ({ ...prev, [key]: value }))
   const togglePref = (key) => setPreferences((prev) => ({ ...prev, [key]: !prev[key] }))
-  const handleAction = (action) => setStatus(`${action} completed`)
+
+  const handleExport = () => {
+    downloadJson(getSnapshot(), `focusflow-export-${toDateKey()}.json`)
+    setStatus('Data exported')
+  }
+
+  const handleBackup = () => {
+    try {
+      window.localStorage.setItem('focusflow-backup', JSON.stringify(getSnapshot()))
+      setStatus(`Backed up at ${new Date().toLocaleTimeString()}`)
+    } catch {
+      setStatus('Backup failed - storage unavailable')
+    }
+  }
+
+  const handleRestore = () => {
+    const raw = window.localStorage.getItem('focusflow-backup')
+    if (!raw) {
+      setStatus('No backup found - use Backup Data first')
+      return
+    }
+    if (!window.confirm('Restore from your last backup? This will overwrite current data.')) return
+    try {
+      restoreSnapshot(JSON.parse(raw))
+      setStatus('Data restored from backup')
+    } catch {
+      setStatus('Restore failed - backup data was corrupted')
+    }
+  }
 
   return (
     <div className="page settings-page">
@@ -37,9 +65,9 @@ const Settings = () => {
 
       <section className="panel data-panel">
         <h2>Data</h2>
-        <button type="button" onClick={() => handleAction('Export')}>Export Data</button>
-        <button type="button" onClick={() => handleAction('Backup')}>Backup Data</button>
-        <button type="button" onClick={() => handleAction('Restore')}>Restore Data</button>
+        <button type="button" onClick={handleExport}>Export Data</button>
+        <button type="button" onClick={handleBackup}>Backup Data</button>
+        <button type="button" onClick={handleRestore}>Restore Data</button>
         {status && <p className="status-message">{status}</p>}
       </section>
     </div>

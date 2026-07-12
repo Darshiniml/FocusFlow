@@ -1,34 +1,22 @@
 import { useMemo, useState } from 'react'
+import { useAppContext } from '../context/useAppContext'
 
 const Roadmap = () => {
-  const [steps, setSteps] = useState([
-    { title: 'Resume', done: true },
-    { title: 'Java Basics', done: true },
-    { title: 'OOP', done: true },
-    { title: 'Collections', done: true },
-    { title: 'JDBC', done: true },
-    { title: 'Spring Boot', done: false },
-    { title: 'DSA 100 Questions', done: false },
-    { title: 'Mock Interviews', done: false },
-    { title: 'HR Preparation', done: false },
-  ])
-
-  const [skills] = useState([
-    { label: 'Java', value: 90 },
-    { label: 'DSA', value: 65 },
-    { label: 'SQL', value: 80 },
-    { label: 'Projects', value: 85 },
-    { label: 'Communication', value: 70 },
-  ])
-
-  const toggleStep = (index) => {
-    setSteps((items) => items.map((step, idx) => idx === index ? { ...step, done: !step.done } : step))
-  }
+  const { roadmapSteps, roadmapSkills, roadmapGoals, toggleRoadmapStep, addRoadmapGoal, removeRoadmapGoal } = useAppContext()
+  const [showAddGoal, setShowAddGoal] = useState(false)
+  const [goalText, setGoalText] = useState('')
 
   const readiness = useMemo(() => {
-    const completed = steps.filter((step) => step.done).length
-    return Math.round((completed / steps.length) * 100)
-  }, [steps])
+    const completed = roadmapSteps.filter((step) => step.done).length
+    return Math.round((completed / roadmapSteps.length) * 100)
+  }, [roadmapSteps])
+
+  const handleAddGoal = () => {
+    if (!goalText.trim()) return
+    addRoadmapGoal(goalText)
+    setGoalText('')
+    setShowAddGoal(false)
+  }
 
   return (
     <div className="page roadmap-page">
@@ -56,9 +44,9 @@ const Roadmap = () => {
           <span className="muted">Tap a step to mark it done / undone.</span>
         </div>
         <ul>
-          {steps.map((step, index) => (
+          {roadmapSteps.map((step, index) => (
             <li key={step.title} className={step.done ? 'step-done-item' : ''}>
-              <button type="button" className="roadmap-step-button" onClick={() => toggleStep(index)}>
+              <button type="button" className="roadmap-step-button" onClick={() => toggleRoadmapStep(index)}>
                 <span className="step-status">{step.done ? '✓' : '☐'}</span>
                 <span>{step.title}</span>
               </button>
@@ -73,7 +61,7 @@ const Roadmap = () => {
           <span className="muted">Visualize your strengths and growth areas.</span>
         </div>
         <ul className="skill-list">
-          {skills.map((skill) => (
+          {roadmapSkills.map((skill) => (
             <li key={skill.label} className="skill-row">
               <span>{skill.label}</span>
               <div className="skill-bar">
@@ -88,12 +76,23 @@ const Roadmap = () => {
       <section className="panel goals-panel">
         <div className="panel-header">
           <h2>Upcoming Goals</h2>
-          <button type="button" className="btn btn-secondary">Add Goal</button>
+          <button type="button" className="btn btn-secondary" onClick={() => setShowAddGoal((prev) => !prev)}>Add Goal</button>
         </div>
+
+        {showAddGoal && (
+          <form onSubmit={(event) => event.preventDefault()} className="add-goal-form">
+            <input value={goalText} onChange={(event) => setGoalText(event.target.value)} type="text" placeholder="e.g. Finish 2 mock interviews" />
+            <button type="button" onClick={handleAddGoal}>Add</button>
+          </form>
+        )}
+
         <ul className="goal-list">
-          <li>Complete Spring Boot</li>
-          <li>Solve 50 More DSA Questions</li>
-          <li>Attend Mock Interview</li>
+          {roadmapGoals.length ? roadmapGoals.map((goal) => (
+            <li key={goal.id}>
+              <span>{goal.text}</span>
+              <button type="button" className="goal-remove" onClick={() => removeRoadmapGoal(goal.id)} title="Remove goal">×</button>
+            </li>
+          )) : <li className="empty">No goals yet</li>}
         </ul>
       </section>
     </div>
