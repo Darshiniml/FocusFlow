@@ -1,14 +1,25 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { AppContext } from './AppContextInstance'
 
 const initialTasks = []
 
 const initialHabits = []
 
+const getInitialTheme = () => {
+  if (typeof window === 'undefined') return 'dark'
+  return window.localStorage.getItem('focusflow-theme') || 'dark'
+}
+
 export const AppProvider = ({ children }) => {
   const [tasks, setTasks] = useState(initialTasks)
   const [habits, setHabits] = useState(initialHabits)
   const [habitLogs, setHabitLogs] = useState([]) // { id, habitId, date: 'yyyy-mm-dd' }
+  const [theme, setTheme] = useState(getInitialTheme) // 'light' | 'dark'
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+    window.localStorage.setItem('focusflow-theme', theme)
+  }, [theme])
 
   const addTask = (task) => {
     setTasks((prev) => [
@@ -108,6 +119,8 @@ export const AppProvider = ({ children }) => {
         toggleHabit,
         logHabitOnDate,
         dashboardStats,
+        theme,
+        setTheme,
       }}
     >
       {children}

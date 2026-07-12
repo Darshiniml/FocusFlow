@@ -1,8 +1,9 @@
 import { useState } from 'react'
+import { useAppContext } from '../context/useAppContext'
 
 const Settings = () => {
+  const { theme, setTheme } = useAppContext()
   const [profile, setProfile] = useState({ name: '', email: '', avatar: '' })
-  const [theme, setTheme] = useState('dark')
   const [preferences, setPreferences] = useState({ notifications: true, taskReminders: false, habitReminders: false, studyReminders: false })
   const [status, setStatus] = useState('')
 
