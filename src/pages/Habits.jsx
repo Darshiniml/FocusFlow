@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useAppContext } from '../context/useAppContext'
+import { toDateKey } from '../utils/date'
 
 const Habits = () => {
   const { habits, addHabit, toggleHabit, habitLogs, logHabitOnDate } = useAppContext()
@@ -48,7 +49,7 @@ const Habits = () => {
                   <input type="checkbox" checked={habit.active} onChange={() => toggleHabit(habit.id)} /> {habit.title}
                 </label>
                 <div className="habit-actions">
-                  <button type="button" onClick={() => logHabitOnDate(habit.id, new Date().toISOString().slice(0, 10))}>Log Today</button>
+                  <button type="button" onClick={() => logHabitOnDate(habit.id, toDateKey())}>Log Today</button>
                   <span className="muted">{logs.length} logs</span>
                 </div>
               </li>

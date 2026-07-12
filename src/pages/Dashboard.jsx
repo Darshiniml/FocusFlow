@@ -1,13 +1,14 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppContext } from '../context/useAppContext'
+import { toDateKey, parseDateKey } from '../utils/date'
 
 const Dashboard = () => {
   const { tasks, habits, dashboardStats, toggleTaskCompletion, toggleHabit } = useAppContext()
   const navigate = useNavigate()
 
   const today = useMemo(() => new Date(), [])
-  const todayIso = today.toISOString().slice(0, 10)
+  const todayIso = toDateKey(today)
 
   const todaysTasks = useMemo(() => {
     const taskList = tasks.filter((task) => task.dueDate === todayIso)
@@ -238,7 +239,7 @@ const Dashboard = () => {
             {upcomingTasks.length > 0 ? upcomingTasks.map((task) => (
               <li key={task.id}>
                 <strong>{task.title}</strong>
-                <span className="due-date">{new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                <span className="due-date">{parseDateKey(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
               </li>
             )) : <li className="empty">No upcoming deadlines</li>}
           </ul>

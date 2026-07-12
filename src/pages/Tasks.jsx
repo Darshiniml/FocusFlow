@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useAppContext } from '../context/useAppContext'
+import { toDateKey } from '../utils/date'
 
 const Tasks = () => {
   const { tasks, addTask, updateTask, deleteTask, toggleTaskCompletion } = useAppContext()
@@ -11,7 +12,7 @@ const Tasks = () => {
     if (filter === 'Pending') return tasks.filter((task) => !task.completed)
     if (filter === 'Completed') return tasks.filter((task) => task.completed)
     if (filter === 'High Priority') return tasks.filter((task) => task.priority === 'High')
-    if (filter === "Today's Tasks") return tasks.filter((task) => task.dueDate === new Date().toISOString().slice(0, 10))
+    if (filter === "Today's Tasks") return tasks.filter((task) => task.dueDate === toDateKey())
     return tasks
   }, [filter, tasks])
 

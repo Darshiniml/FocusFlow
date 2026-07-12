@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react'
 import { useAppContext } from '../context/useAppContext'
+import { toDateKey as formatDate } from '../utils/date'
 
 const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-
-const formatDate = (date) => date.toISOString().slice(0, 10)
 
 const buildHeatmapDays = () => {
   const today = new Date()

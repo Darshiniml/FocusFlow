@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AppContext } from './AppContextInstance'
+import { toDateKey } from '../utils/date'
 
 const initialTasks = []
 
@@ -43,7 +44,7 @@ export const AppProvider = ({ children }) => {
       return {
         ...task,
         completed,
-        completedAt: completed ? new Date().toISOString().slice(0, 10) : null,
+        completedAt: completed ? toDateKey() : null,
       }
     }))
   }

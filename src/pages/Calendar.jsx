@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useAppContext } from '../context/useAppContext'
+import { toDateKey, parseDateKey } from '../utils/date'
 
 const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -7,7 +8,7 @@ const Calendar = () => {
   const { tasks, habitLogs } = useAppContext()
   const today = new Date()
   const [month, setMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1))
-  const [selectedDate, setSelectedDate] = useState(today.toISOString().slice(0, 10))
+  const [selectedDate, setSelectedDate] = useState(toDateKey(today))
 
   const monthLabel = useMemo(() => month.toLocaleString('default', { month: 'long', year: 'numeric' }), [month])
 
@@ -98,7 +99,7 @@ const Calendar = () => {
         </div>
         <div className="header-actions">
           <button type="button" className="btn btn-secondary" onClick={() => changeMonth(-1)}>◀</button>
-          <button type="button" className="btn btn-secondary" onClick={() => setMonth(new Date(today.getFullYear(), today.getMonth(), 1))}>Today</button>
+          <button type="button" className="btn btn-secondary" onClick={() => { setMonth(new Date(today.getFullYear(), today.getMonth(), 1)); setSelectedDate(toDateKey(today)) }}>Today</button>
           <button type="button" className="btn btn-secondary" onClick={() => changeMonth(1)}>▶</button>
         </div>
       </header>
@@ -112,8 +113,8 @@ const Calendar = () => {
 
           {monthMatrix.map((week) => (
             week.map((cell) => {
-              const key = cell.date.toISOString().slice(0, 10)
-              const isToday = key === today.toISOString().slice(0, 10)
+              const key = toDateKey(cell.date)
+              const isToday = key === toDateKey(today)
               const isSelected = key === selectedDate
               const dayTasks = tasksByDate[key] || []
 
@@ -130,9 +131,8 @@ const Calendar = () => {
                   <div className="cell-body">
                     <div className="cell-dots">
                       {dayTasks.slice(0, 3).map((t) => {
-                        const taskDateKey = key
-                        const dateObj = new Date(taskDateKey)
-                        const isPast = dateObj < new Date(today.toISOString().slice(0, 10))
+                        const dateObj = parseDateKey(key)
+                        const isPast = dateObj < parseDateKey(toDateKey(today))
                         const color = t.completed ? 'green' : (isPast ? 'red' : 'yellow')
                         return <span key={t.id} className={"status-dot " + color} title={t.title}></span>
                       })}
@@ -161,7 +161,7 @@ const Calendar = () => {
       {popover.open && (
         <div className="popover" style={{ left: popover.x, top: popover.y }} role="dialog" aria-modal="false">
           <button className="popover-close" onClick={closePopover}>×</button>
-          <h4>{new Date(popover.dateKey).toLocaleDateString('default', { month: 'short', day: 'numeric', year: 'numeric' })}</h4>
+          <h4>{popover.dateKey && parseDateKey(popover.dateKey).toLocaleDateString('default', { month: 'short', day: 'numeric', year: 'numeric' })}</h4>
           <div className="popover-section">
             <strong>Tasks</strong>
             <ul>
@@ -185,7 +185,7 @@ const Calendar = () => {
 
       <section className="panel day-details-panel">
         <h2>Selected Day Details</h2>
-        <p>Date: {new Date(selectedDate).toLocaleDateString('default', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+        <p>Date: {parseDateKey(selectedDate).toLocaleDateString('default', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
         <div>
           <h3>Tasks:</h3>
           <ul>

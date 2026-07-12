@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { toDateKey } from '../utils/date'
 
 const baseSubjects = ['Java', 'DSA', 'SQL', 'DBMS', 'OS', 'CN', 'Spring Boot', 'Aptitude']
 
@@ -6,7 +7,7 @@ const StudyTracker = () => {
   const [subject, setSubject] = useState('Java')
   const [topic, setTopic] = useState('')
   const [duration, setDuration] = useState('1')
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10))
+  const [date, setDate] = useState(toDateKey())
   const [sessions, setSessions] = useState([
     { id: 1, subject: 'Java', topic: 'Collections', duration: 2, date: '2026-08-15' },
     { id: 2, subject: 'DSA', topic: 'Arrays', duration: 1.5, date: '2026-08-14' },
